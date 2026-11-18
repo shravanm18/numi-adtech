@@ -160,6 +160,10 @@ function expandSuffixes(expr: string): { expanded: string; hasCurrency: boolean 
     );
   }
 
+  // Support 'x' or 'X' as multiplication (e.g. "5 x 10", "5x10", "1.5m x 2")
+  out = out.replace(/(\d|\))\s*[xX]\s*(\d|\()/g, '$1 * $2');
+  out = out.replace(/\s+[xX]\s+/g, ' * ');
+
   return { expanded: out, hasCurrency };
 }
 
