@@ -172,9 +172,9 @@ function expandSuffixes(expr: string): { expanded: string; hasCurrency: boolean 
  */
 function tryEvalAdTech(line: string): EvalValue | null {
   // 1. Impressions + CPM -> Spend
-  // e.g. "2.5m impressions at $15 cpm" or "500k imp @ $12 cpm"
+  // e.g. "2.5m impressions at $15 cpm", "2.5m * $30 cpm", "2.5 million x 30 cpm"
   const impAtCpm = line.match(
-    /^(\$?[\d.,]+\s*(?:k|m|million|b|billion)?)\s*(?:imp|imps|impressions?)\s*(?:at|@)\s*(\$?[\d.,]+\s*(?:k|m|million|b|billion)?)\s*cpm$/i
+    /^(\$?[\d.,]+\s*(?:k|m|million|b|billion)?)(?:\s*(?:imp|imps|impressions?))?\s*(?:at|@|\*|x)\s*(\$?[\d.,]+\s*(?:k|m|million|b|billion)?)\s*cpm$/i
   );
   if (impAtCpm) {
     const imp = parseScaledNumber(impAtCpm[1]);
