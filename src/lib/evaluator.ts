@@ -172,15 +172,27 @@ function expandSuffixes(expr: string): { expanded: string; hasCurrency: boolean 
  */
 function tryEvalAdTech(line: string): EvalValue | null {
   // 1. Impressions + CPM -> Spend
-  // e.g. "2.5m impressions at $15 cpm", "2.5m * $30 cpm", "2.5 million x 30 cpm"
+  // e.g. "2.5m impressions at $15 cpm", "2.5m * $30 cpm", "40 million x 0.2% x 30 cpm"
   const impAtCpm = line.match(
-    /^(\$?[\d.,]+\s*(?:k|m|million|b|billion)?)(?:\s*(?:imp|imps|impressions?))?\s*(?:at|@|\*|x)\s*(\$?[\d.,]+\s*(?:k|m|million|b|billion)?)\s*cpm$/i
+    /^(.+?)(?:\s*(?:imp|imps|impressions?))?\s*(?:at|@|\*|x)\s*(\$?[\d.,]+\s*(?:k|m|million|b|billion)?)\s*cpm$/i
   );
   if (impAtCpm) {
-    const imp = parseScaledNumber(impAtCpm[1]);
     const cpm = parseScaledNumber(impAtCpm[2]);
-    if (imp && cpm) {
-      return { value: (imp.value / 1000) * cpm.value, kind: 'currency', currency: 'USD' };
+    let impVal = parseScaledNumber(impAtCpm[1])?.value ?? null;
+    if (impVal === null) {
+      try {
+        const { expanded } = expandSuffixes(impAtCpm[1].trim());
+        const withPct = preprocessPercentages(expanded);
+        const evaluated = math.evaluate(withPct);
+        if (typeof evaluated === 'number' && Number.isFinite(evaluated)) {
+          impVal = evaluated;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    if (impVal !== null && cpm) {
+      return { value: (impVal / 1000) * cpm.value, kind: 'currency', currency: 'USD' };
     }
   }
 
